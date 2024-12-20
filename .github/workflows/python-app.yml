@@ -30,6 +30,7 @@ jobs:
           # Update pip to latest version
           python -m pip install --upgrade pip
           # Install security tools: bandit (SAST), safety (dependency checker), detect-secrets
+
           pip install bandit safety detect-secrets
 
     # Run Static Application Security Testing (SAST)
