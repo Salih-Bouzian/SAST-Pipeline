@@ -49,10 +49,13 @@ jobs:
         safety check
 
     # Check for secrets in the code
-    - name: Secret Scanning
-      uses: trufflesecurity/trufflehog@main
-      with:
-        extra_args: --results=verified,unknown
+    - name: Check for secrets
+      run: |
+          if detect-secrets scan . | grep -v '{}' > secrets.txt; then
+            echo "Secrets were detected in the codebase:"
+            cat secrets.txt
+            exit 1
+          fi
 
     # Fail the pull request if there are any warnings or errors
     - name: Enforce security policies
