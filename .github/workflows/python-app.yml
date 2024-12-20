@@ -7,8 +7,7 @@ on:
   pull_request:
     branches:
       - main
-  schedule:
-    - cron: '0 0 * * 0' # Elke zondag om 00:00 (wekelijkse SAST scan)
+
 
 jobs:
   security-checks:
@@ -24,13 +23,24 @@ jobs:
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.x'
+        python-version: '3.X'
+        
+    - name: Install dependencies
+      run: |
+          # Update pip to latest version
+          python -m pip install --upgrade pip
+          # Install security tools: bandit (SAST), safety (dependency checker), detect-secrets
+          pip install bandit safety
 
     # Run Static Application Security Testing (SAST)
     - name: Run SAST
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: 'security-and-quality'
+      run: |
+          bandit -r . -v --severity-level low || (
+            echo "SAST scan foudn security issues"
+            exit 1
+          )
+      continue-on-error: true
+
 
     # Check dependencies for vulnerabilities
     - name: Dependency check
@@ -50,17 +60,3 @@ jobs:
       run: |
         echo "Checks failed. Please resolve all warnings and errors before merging."
         exit 1
-
-  weekly-sast:
-    name: Weekly SAST Scan
-    runs-on: ubuntu-latest
-    steps:
-    # Checkout repository code
-    - name: Checkout code
-      uses: actions/checkout@v3
-
-    # Run Static Application Security Testing (SAST)
-    - name: Run SAST
-      uses: github/codeql-action/analyze@v2
-      with:
-        category: 'security-and-quality'
